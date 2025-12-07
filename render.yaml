@@ -1,0 +1,34 @@
+# https://render.com/docs/yaml-spec
+services:
+  # 1. yt-dlp Core Service (Private Service)
+  - type: pserv
+    name: ytdlp-core
+    # yt-dlpサーバーのコードディレクトリを指定
+    rootDir: ./ytdlp-core
+    # 内部ポートを指定 (ytdlp-core/index.js で使用しているポート)
+    port: 8080
+    plan: starter # または free
+    # ビルドコマンド
+    buildCommand: npm install
+    # 起動コマンド
+    startCommand: node index.js
+    # Private Serviceなので、パブリックアクセスの設定は不要
+
+  # 2. Proxy Router Service (Web Service)
+  - type: web
+    name: proxy-router
+    # プロキシサーバーのコードディレクトリを指定
+    rootDir: ./proxy-router
+    # 外部ポートは通常10000 (Renderのデフォルト)
+    plan: starter # または free
+    # ビルドコマンド
+    buildCommand: npm install
+    # 起動コマンド
+    startCommand: node index.js
+    # Web Serviceとして自動的にHTTPSの公開URLが付与されます
+    
+    envVars:
+      # プロキシサーバーが内部のyt-dlpサーバーにアクセスするためのホスト名を設定
+      # [サービス名]:[ポート] の形式
+      - key: YTDLP_CORE_HOST
+        value: http://ytdlp-core:8080
